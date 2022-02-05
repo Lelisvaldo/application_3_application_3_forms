@@ -31,6 +31,9 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final formkey = GlobalKey<FormState>();
+  var user = UserModel();
+  var passwordCache = '';
+  var passwordCacheConfirm = '';
 
   @override
   Widget build(BuildContext context) {
@@ -47,30 +50,50 @@ class _MyHomePageState extends State<MyHomePage> {
               CustomTextField(
                 label: "Name",
                 icon: Icons.person,
+                onSaved: (text) => user = user.copyWith(name: text),
                 validator: (text) => text == null || text.isEmpty
                     ? 'This field can\'t be empty.'
                     : null,
               ),
               const SizedBox(height: 15),
-              const CustomTextField(
-                label: "E-mail",
-                icon: Icons.mail,
+              CustomTextField(
+                  label: "E-mail",
+                  icon: Icons.mail,
+                  onSaved: (text) => user = user.copyWith(email: text),
+                  validator: (text) {
+                    if (text == null || text.isEmpty) {
+                      return 'This field can\'t be empty.';
+                    }
+                    if (!validator.isEmail(text)) {
+                      return 'Value must be email type.';
+                    }
+                  }),
+              const SizedBox(height: 15),
+              CustomTextField(
+                label: "Password",
+                icon: Icons.lock,
+                onSaved: (text) => user = user.copyWith(password: text),
+                onChanged: (text) => passwordCache = text,
                 validator: (text) {
-                  return '';
-                  /*if (text == null || text.isEmpty) {
-                    //return 'This field can\'t be empty.';
-                  }*/
+                  if (text == null || text.isEmpty) {
+                    return 'This field can\'t be empty.';
+                  }
                 },
               ),
               const SizedBox(height: 15),
-              const CustomTextField(
-                label: "Password",
-                icon: Icons.lock,
-              ),
-              const SizedBox(height: 15),
-              const CustomTextField(
+              CustomTextField(
                 label: "Confirm password",
                 icon: Icons.lock,
+                onSaved: (text) => user = user.copyWith(password: text),
+                onChanged: (text) => passwordCacheConfirm = text,
+                validator: (text) {
+                  if (text == null || text.isEmpty) {
+                    return 'This field can\'t be empty.';
+                  }
+                  if(passwordCacheConfirm != passwordCache){
+                    return 'Your password and confirmation password don\'t match.';
+                  }
+                },
               ),
               const SizedBox(height: 45),
               SizedBox(
@@ -81,6 +104,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   onPressed: () {
                     if (formkey.currentState!.validate()) {
                       formkey.currentState!.save();
+                      print('''FLUTTERANDO FORM\n
+                        Name:  ${user.name}
+                        Email: ${user.email} 
+                        Password: ${user.password} 
+                      ''');
                     }
                   },
                   icon: const Icon(Icons.save),
@@ -113,6 +141,7 @@ class CustomTextField extends StatelessWidget {
   final IconData? icon;
   final String? Function(String? text)? validator;
   final void Function(String? text)? onSaved;
+  final void Function(String text)? onChanged;
 
   const CustomTextField({
     Key? key,
@@ -120,18 +149,16 @@ class CustomTextField extends StatelessWidget {
     this.icon,
     this.validator,
     this.onSaved,
+    this.onChanged,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      validator: (text) {
-        if (text == null || text.isEmpty) {
-          return 'This field can\'t be empty.';
-        }
-        return null;
-      },
-      onSaved: (text) {},
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      validator: validator,
+      onSaved: onSaved,
+      onChanged: onChanged,
       decoration: InputDecoration(
         labelText: label,
         border: const OutlineInputBorder(),
@@ -141,6 +168,27 @@ class CustomTextField extends StatelessWidget {
   }
 }
 
+@immutable
+class UserModel {
+  final String name;
+  final String email;
+  final String password;
 
-git config --global user.email "lelisvaldo@outlook.com"
-git config --global user.name "lelisvaldo"
+  UserModel({
+    this.name = '',
+    this.email = '',
+    this.password = '',
+  });
+
+  UserModel copyWith({
+    String? name,
+    String? email,
+    String? password,
+  }) {
+    return UserModel(
+      name: name ?? this.name,
+      email: email ?? this.email,
+      password: password ?? this.password,
+    );
+  }
+}
