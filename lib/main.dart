@@ -34,6 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
   var user = UserModel();
   var passwordCache = '';
   var passwordCacheConfirm = '';
+  bool obscureTextPassword = false;
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +73,17 @@ class _MyHomePageState extends State<MyHomePage> {
               CustomTextField(
                 label: "Password",
                 icon: Icons.lock,
+                obscureText: obscureTextPassword,
+                suffix: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      obscureTextPassword = !obscureTextPassword;
+                    });
+                  },
+                  icon: Icon(obscureTextPassword
+                      ? Icons.visibility
+                      : Icons.visibility_off),
+                ),
                 onSaved: (text) => user = user.copyWith(password: text),
                 onChanged: (text) => passwordCache = text,
                 validator: (text) {
@@ -84,13 +96,24 @@ class _MyHomePageState extends State<MyHomePage> {
               CustomTextField(
                 label: "Confirm password",
                 icon: Icons.lock,
+                obscureText: obscureTextPassword,
+                suffix: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      obscureTextPassword = !obscureTextPassword;
+                    });
+                  },
+                  icon: Icon(obscureTextPassword
+                      ? Icons.visibility
+                      : Icons.visibility_off),
+                ),
                 onSaved: (text) => user = user.copyWith(password: text),
                 onChanged: (text) => passwordCacheConfirm = text,
                 validator: (text) {
                   if (text == null || text.isEmpty) {
                     return 'This field can\'t be empty.';
                   }
-                  if(passwordCacheConfirm != passwordCache){
+                  if (passwordCacheConfirm != passwordCache) {
                     return 'Your password and confirmation password don\'t match.';
                   }
                 },
@@ -139,6 +162,8 @@ class _MyHomePageState extends State<MyHomePage> {
 class CustomTextField extends StatelessWidget {
   final String label;
   final IconData? icon;
+  final bool obscureText;
+  final Widget? suffix;
   final String? Function(String? text)? validator;
   final void Function(String? text)? onSaved;
   final void Function(String text)? onChanged;
@@ -147,9 +172,11 @@ class CustomTextField extends StatelessWidget {
     Key? key,
     required this.label,
     this.icon,
+    this.obscureText = false,
     this.validator,
     this.onSaved,
     this.onChanged,
+    this.suffix,
   }) : super(key: key);
 
   @override
@@ -159,10 +186,12 @@ class CustomTextField extends StatelessWidget {
       validator: validator,
       onSaved: onSaved,
       onChanged: onChanged,
+      obscureText: obscureText,
       decoration: InputDecoration(
         labelText: label,
         border: const OutlineInputBorder(),
         prefixIcon: icon == null ? null : Icon(icon),
+        suffixIcon: suffix,
       ),
     );
   }
